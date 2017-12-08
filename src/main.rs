@@ -53,10 +53,10 @@ impl Graphics {
                         var draw = dynamic_draws[i][d];
 
                         this.context.setTransform(1, 0, 0, 1, 0, 0);
-                        this.context.translate(draw[1], draw[2]);
+                        this.context.translate(draw[1]-camera[0], draw[2]-camera[1]);
                         this.context.rotate(draw[3]);
-                        this.context.scale(1, 1);
-                        this.context.drawImage(tileset, 90, 130, 50, 50, -25, -25, 50, 50);
+                        this.context.scale(camera[2], camera[2]);
+                        this.context.drawImage(tileset, 90, 130, 50, 50, -0.5, -0.5, 1, 1);
                     }
                 }
             };
@@ -81,11 +81,18 @@ impl Graphics {
         }
     }
 
-    fn draw(&self) {
+    fn draw(&self, camera: &Camera) {
+        let camera = ::stdweb::Value::Array(vec![camera.x.into(), camera.y.into(), camera.zoom.into()]);
         js! {
-            tgl.draw(0, @{&self.draws});
+            tgl.draw(@{camera}, @{&self.draws});
         }
     }
+}
+
+pub struct Camera {
+    zoom: f32,
+    x: f32,
+    y: f32,
 }
 
 pub fn main() {
@@ -93,6 +100,10 @@ pub fn main() {
     let mut graphics = Graphics::initialize();
     set_main_loop_callback(|| {
         graphics.insert_draw(0, 100.0, 100.0, 0.5, Layer::Ceil);
-        graphics.draw();
+        graphics.draw(&Camera {
+            zoom: 100.0,
+            x: 0.0,
+            y: 0.0,
+        });
     });
 }
