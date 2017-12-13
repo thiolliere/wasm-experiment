@@ -5,3 +5,4 @@ authors = ["thiolliere <gui.thiolliere@gmail.com>"]
 
 [dependencies]
 stdweb = "0.1"
+winit = "0.9"
