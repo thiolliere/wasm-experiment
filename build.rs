@@ -25,6 +25,8 @@ fn main() {
         let mut files = formats.entry(format).or_insert(vec!());
         files.push(file);
     }
+    let mut formats: Vec<_> = formats.drain().collect();
+    formats.sort();
 
     // Write animation_enum and make_tileset
     let dest_path = Path::new(&out_dir).join("animations.rs");
@@ -34,7 +36,7 @@ fn main() {
     let mut out_cmd = File::create(&dest_path).unwrap();
 
     let mut tiles = vec!();
-    for (format_index, (_format, mut files)) in formats.iter_mut().enumerate() {
+    for (format_index, &mut (format, ref mut files)) in formats.iter_mut().enumerate() {
         files.sort();
 
         let width_len = (files.len() as f64).sqrt() as usize;
@@ -59,14 +61,15 @@ fn main() {
         }
 
         let mut animations = HashMap::new();
-        for file in files {
+        for (i, file) in files.iter().enumerate() {
             let mut animation = String::from(file.file_name().unwrap().to_str().unwrap());
             let animation_len = animation.len();
             animation.truncate(animation_len - 8);
             let mut tile_ids = animations.entry(animation).or_insert(vec!());
             tile_ids.push(tiles.len());
-            // tileset, x, y, widht, heigh
-            tiles.push([format_index, 0, 0, 10, 10]);
+            let x = i%width_len;
+            let y = i/width_len;
+            tiles.push([format_index, x*format[0], y*format[1], format[0], format[1]]);
         }
 
         for (name, tile_ids) in animations {

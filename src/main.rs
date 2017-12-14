@@ -85,10 +85,17 @@ impl Graphics {
         }
     }
 
-    fn draw(&self, camera: &Camera) {
+    fn draw(&mut self, camera: &Camera) {
         let camera = ::stdweb::Value::Array(vec![camera.x.into(), camera.y.into(), camera.zoom.into()]);
         js! {
             tgl.draw(@{camera}, @{&self.draws});
+        }
+        if let ::stdweb::Value::Array(ref mut draws) = self.draws {
+            for i in 0..Layer::size() {
+                if let ::stdweb::Value::Array(ref mut draws) = draws[i] {
+                    draws.clear();
+                }
+            }
         }
     }
 }
