@@ -70,8 +70,11 @@ canvas.emscripten {
 
 var spinnerElement = document.getElementById('spinner');
 
+tileset_names = []; // Filled by build.rs
+tiles = []; // Filled by build.rs
+
 var loader = {
-	to_load: 2,
+	to_load: 1 + tileset_names.length,
 	loaded: 0,
 	add_loaded: function() {
 		this.loaded += 1;
@@ -81,15 +84,20 @@ var loader = {
 	},
 };
 
-tileset = new Image();
-tileset.addEventListener("load", function(event) {
-	console.log("load: image completed");
-	loader.add_loaded();
-});
-tileset.addEventListener("progress", function(event) {
-	console.log("progress: image progress");
-});
-tileset.src = "https://upload.wikimedia.org/wikipedia/commons/5/5e/Big_Wood%2C_N2.JPG";
+tilesets = [];
+for (var name in tileset_names) {
+	name = tileset_names[name];
+	tileset = new Image();
+	tileset.addEventListener("load", function(event) {
+		console.log("load: image completed");
+		loader.add_loaded();
+	});
+	tileset.addEventListener("progress", function(event) {
+		console.log("progress: image progress");
+	});
+	tileset.src = name;
+	tilesets.push(tileset);
+}
 
 var Module = {
 	preRun: [],
@@ -110,12 +118,14 @@ var Module = {
 };
 
 tgl = {
-	canvas : document.getElementById("canvas"),
+	canvas: document.getElementById("canvas"),
 	context: document.getElementById("canvas").getContext("2d"),
-	resize : function() {
+	resize: function() {
 		this.canvas.width  = window.innerWidth;
 		this.canvas.height = window.innerHeight;
 	},
+	tiles: tiles,
+	tilesets: tilesets,
 };
 tgl.resize();
 		</script>

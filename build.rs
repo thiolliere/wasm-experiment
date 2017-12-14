@@ -26,13 +26,15 @@ fn main() {
         files.push(file);
     }
 
-    let dest_path = Path::new(&out_dir).join("animations_enum.rs");
+    // Write animation_enum and make_tileset
+    let dest_path = Path::new(&out_dir).join("animations.rs");
     let mut out_anim = File::create(&dest_path).unwrap();
 
     let dest_path = Path::new(&out_dir).join("make_tileset.sh");
     let mut out_cmd = File::create(&dest_path).unwrap();
 
-    for (format_index, (format, mut files)) in formats.iter_mut().enumerate() {
+    let mut tiles = vec!();
+    for (format_index, (_format, mut files)) in formats.iter_mut().enumerate() {
         files.sort();
 
         let width_len = (files.len() as f64).sqrt() as usize;
@@ -57,23 +59,42 @@ fn main() {
         }
 
         let mut animations = HashMap::new();
-        for (i, file) in files.iter().enumerate() {
+        for file in files {
             let mut animation = String::from(file.file_name().unwrap().to_str().unwrap());
             let animation_len = animation.len();
             animation.truncate(animation_len - 8);
-            let mut indices = animations.entry(animation).or_insert(vec!());
-            indices.push(i);
+            let mut tile_ids = animations.entry(animation).or_insert(vec!());
+            tile_ids.push(tiles.len());
+            // tileset, x, y, widht, heigh
+            tiles.push([format_index, 0, 0, 10, 10]);
         }
 
-        for (name, tiles) in animations {
-            out_anim.write_fmt(format_args!("pub const {}: [usize; {}] = [", name.to_uppercase(), tiles.len())).unwrap();
-            for tile in tiles {
-                out_anim.write_all(b"Tile { ").unwrap();
-                // TODO: x, y, width, height
-                out_anim.write_fmt(format_args!("tileset: {}, index: {} ", format_index, tile)).unwrap();
-                out_anim.write_all(b"}, ").unwrap();
+        for (name, tile_ids) in animations {
+            out_anim.write_fmt(format_args!("pub const {}: [u32; {}] = [", name.to_uppercase(), tile_ids.len())).unwrap();
+            for id in tile_ids {
+                out_anim.write_fmt(format_args!("{}, ", id)).unwrap();
             }
             out_anim.write_all(b"];\n").unwrap();
         }
     }
+
+    // Write index.html
+    let names = formats.iter()
+        .enumerate()
+        .map(|(i, _)| format!("tileset{}.png", i))
+        .collect::<Vec<_>>();
+    let tileset_pattern = format!("s/tileset_names = \\[\\]; \\/\\/ Filled by build.rs/tileset_names = {:?};/", names);
+    let tiles_pattern = format!("s/tiles = \\[\\]; \\/\\/ Filled by build.rs/tiles = {:?};/", tiles);
+    let sed_pattern = format!("{};{}", tileset_pattern, tiles_pattern);
+
+    let template = String::from("src/index.html");
+    let dest_path = Path::new(&out_dir).join("index.html");
+    let out_html = File::create(&dest_path).unwrap();
+
+    assert!(Command::new("sed")
+        .args(&[sed_pattern, template])
+        .stdout(out_html)
+        .status()
+        .unwrap()
+        .success());
 }

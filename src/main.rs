@@ -1,6 +1,7 @@
 #![recursion_limit="500"]
 #[macro_use] extern crate stdweb;
 extern crate winit;
+#[macro_use] extern crate lazy_static;
 
 use stdweb::unstable::TryInto;
 use std::os::raw::c_void;
@@ -58,7 +59,8 @@ impl Graphics {
                         this.context.translate(draw[1]-camera[0], draw[2]-camera[1]);
                         this.context.rotate(draw[3]);
                         this.context.scale(camera[2], camera[2]);
-                        this.context.drawImage(tileset, 90, 130, 50, 50, -0.5, -0.5, 1, 1);
+                        var tile = tiles[draw[0]];
+                        this.context.drawImage(tilesets[tile[0]], tile[1], tile[2], tile[3], tile[4], -0.5, -0.5, 1, 1);
                     }
                 }
             };
@@ -101,6 +103,8 @@ pub fn main() {
     stdweb::initialize();
     let mut graphics = Graphics::initialize();
     let mut events_loop = winit::EventsLoop::new();
+    let mut hero = animation::Animated::new(animation::Entity::Character, animation::State::Walking);
+    let dt = 1.0/60.0;
     set_main_loop_callback(|| {
         events_loop.poll_events(|event| {
             match event {
@@ -119,7 +123,8 @@ pub fn main() {
                 _ => (),
             }
         });
-        graphics.insert_draw(0, 100.0, 100.0, 0.5, Layer::Ceil);
+        hero.update(dt);
+        graphics.insert_draw(hero.tile(), 100.0, 100.0, 0.5, Layer::Ceil);
         graphics.draw(&Camera {
             zoom: 100.0,
             x: 0.0,

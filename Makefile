@@ -10,7 +10,9 @@ $(BUILD_DIR)/$(NAME).js: cargo_build
 
 $(BUILD_DIR)/$(NAME).wasm: cargo_build
 
-$(BUILD_DIR)/build/$(NAME)-*/out/make_tileset.sh: cargo_build
+$(BUILD_DIR)/build/$(NAME)-%/out/index.html: cargo_build
+
+$(BUILD_DIR)/build/$(NAME)-%/out/make_tileset.sh: cargo_build
 
 $(TARGET_DIR)/$(NAME).js: $(BUILD_DIR)/$(NAME).js $(TARGET_DIR)
 	cp $< $@
@@ -18,7 +20,7 @@ $(TARGET_DIR)/$(NAME).js: $(BUILD_DIR)/$(NAME).js $(TARGET_DIR)
 $(TARGET_DIR)/$(NAME).wasm: $(BUILD_DIR)/$(NAME).wasm $(TARGET_DIR)
 	cp $< $@
 
-$(TARGET_DIR)/index.html: index.html $(TARGET_DIR)
+$(TARGET_DIR)/index.html: $(BUILD_DIR)/build/$(NAME)-*/out/index.html $(TARGET_DIR)
 	cp $< $@
 
 # This command fails if out/make_tileset.sh doesn't exist but
@@ -35,9 +37,9 @@ cargo_build:
 	cargo build --target wasm32-unknown-emscripten --$(MODE)
 
 .PHONY: build
-build: $(TARGET_DIR)/index.html \
-       $(TARGET_DIR)/$(NAME).js \
+build: $(TARGET_DIR)/$(NAME).js \
        $(TARGET_DIR)/$(NAME).wasm \
+       $(TARGET_DIR)/index.html \
        $(TARGET_DIR)/tileset0.png
 
 .PHONY: run
