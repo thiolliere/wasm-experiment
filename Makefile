@@ -10,6 +10,8 @@ $(BUILD_DIR)/$(NAME).js: cargo_build
 
 $(BUILD_DIR)/$(NAME).wasm: cargo_build
 
+$(BUILD_DIR)/build/$(NAME)-*/out/make_tileset.sh: cargo_build
+
 $(TARGET_DIR)/$(NAME).js: $(BUILD_DIR)/$(NAME).js $(TARGET_DIR)
 	cp $< $@
 
@@ -19,8 +21,10 @@ $(TARGET_DIR)/$(NAME).wasm: $(BUILD_DIR)/$(NAME).wasm $(TARGET_DIR)
 $(TARGET_DIR)/index.html: index.html $(TARGET_DIR)
 	cp $< $@
 
-$(TARGET_DIR)/tileset.jpg: tileset.jpg $(TARGET_DIR)
-	cp $< $@
+# This command fails if out/make_tileset.sh doesn't exist but
+# if we rely on this file then it rebuilds each time...
+$(TARGET_DIR)/tileset0.png: assets/animations/*.png $(TARGET_DIR)
+	TARGET_DIR=$(TARGET_DIR) sh $(BUILD_DIR)/build/$(NAME)-*/out/make_tileset.sh
 
 .PHONY: check
 check:
@@ -34,8 +38,13 @@ cargo_build:
 build: $(TARGET_DIR)/index.html \
        $(TARGET_DIR)/$(NAME).js \
        $(TARGET_DIR)/$(NAME).wasm \
-       $(TARGET_DIR)/tileset.jpg
+       $(TARGET_DIR)/tileset0.png
 
 .PHONY: run
 run: build
 	firefox $(TARGET_DIR)/index.html
+
+# This command is unsafe be allow to rebuild tileset quickly
+.PHONY: tileset
+tileset:
+	TARGET_DIR=$(TARGET_DIR) sh $(BUILD_DIR)/build/$(NAME)-*/out/make_tileset.sh
