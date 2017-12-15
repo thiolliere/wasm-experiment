@@ -11,6 +11,7 @@ use std::cell::RefCell;
 mod ffi;
 mod animation;
 mod audio;
+mod tgl;
 
 thread_local!(static MAIN_LOOP_CALLBACK: RefCell<*mut c_void> = RefCell::new(ptr::null_mut()));
 
@@ -29,87 +30,9 @@ fn set_main_loop_callback<F>(callback : F) where F : FnMut() {
     }
 }
 
-struct Graphics {
-    draws: ::stdweb::Value,
-}
-
-#[derive(Clone, Copy)]
-pub enum Layer {
-    Floor,
-    Middle,
-    Ceil,
-}
-
-impl Layer {
-    fn size() -> usize {
-        Layer::Ceil as usize + 1
-    }
-}
-
-impl Graphics {
-    fn initialize() -> Self {
-        let layer_size: ::stdweb::Value = (Layer::size() as u32).into();
-        js! {
-            tgl.draw = function(camera, dynamic_draws) {
-                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                for (var i = 0; i < @{layer_size}; i++) {
-                    for (var d = 0; d < dynamic_draws[i].length; d++) {
-                        var draw = dynamic_draws[i][d];
-
-                        this.context.setTransform(1, 0, 0, 1, 0, 0);
-                        this.context.translate(draw[1]-camera[0], draw[2]-camera[1]);
-                        this.context.rotate(draw[3]);
-                        this.context.scale(camera[2], camera[2]);
-                        var tile = tiles[draw[0]];
-                        this.context.drawImage(tilesets[tile[0]], tile[1], tile[2], tile[3], tile[4], -0.5, -0.5, 1, 1);
-                    }
-                }
-            };
-        }
-
-        let mut layers = vec![];
-        for _ in 0..Layer::size() {
-            layers.push(::stdweb::Value::Array(vec![]));
-        }
-
-        Graphics {
-            draws: layers.into(),
-        }
-    }
-
-    fn insert_draw(&mut self, id: u32, x: f32, y: f32, rotation: f32, layer: Layer) {
-        let draw: Vec<::stdweb::Value> = vec![id.into(), x.into(), y.into(), rotation.into()];
-        if let ::stdweb::Value::Array(ref mut draws) = self.draws {
-            if let ::stdweb::Value::Array(ref mut draws) = draws[layer as usize] {
-                draws.push(draw.into());
-            }
-        }
-    }
-
-    fn draw(&mut self, camera: &Camera) {
-        let camera = ::stdweb::Value::Array(vec![camera.x.into(), camera.y.into(), camera.zoom.into()]);
-        js! {
-            tgl.draw(@{camera}, @{&self.draws});
-        }
-        if let ::stdweb::Value::Array(ref mut draws) = self.draws {
-            for i in 0..Layer::size() {
-                if let ::stdweb::Value::Array(ref mut draws) = draws[i] {
-                    draws.clear();
-                }
-            }
-        }
-    }
-}
-
-pub struct Camera {
-    zoom: f32,
-    x: f32,
-    y: f32,
-}
-
 pub fn main() {
     stdweb::initialize();
-    let mut graphics = Graphics::initialize();
+    let mut graphics = tgl::Graphics::initialize();
     let mut events_loop = winit::EventsLoop::new();
     let mut hero = animation::Animated::new(animation::Entity::Character, animation::State::Walking);
     let dt = 1.0/60.0;
@@ -132,8 +55,8 @@ pub fn main() {
             }
         });
         hero.update(dt);
-        graphics.insert_draw(hero.tile(), 100.0, 100.0, 0.5, Layer::Ceil);
-        graphics.draw(&Camera {
+        graphics.insert_tile(hero.tile(), 100.0, 100.0, 0.5, tgl::Layer::Ceil);
+        graphics.draw(&tgl::Camera {
             zoom: 100.0,
             x: 0.0,
             y: 0.0,
