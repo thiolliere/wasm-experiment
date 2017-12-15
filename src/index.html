@@ -44,7 +44,7 @@ var loader = {
 	loaded: 0,
 	add_loaded: function() {
 		this.loaded += 1;
-		loadingElement.innerHTML = "<b>Loading " + this.loaded * 100 / this.to_load + "%</b>";
+		loadingElement.innerHTML = "<b>Loading " + Math.round(this.loaded * 100 / this.to_load) + "%</b>";
 		if (this.loaded === this.to_load) {
 			loadingElement.style.display = 'none';
 			Module.callMain();
@@ -57,11 +57,7 @@ for (var name in tileset_names) {
 	var name = tileset_names[name];
 	tileset = new Image();
 	tileset.addEventListener("load", function(event) {
-		console.log("load: image completed");
 		loader.add_loaded();
-	});
-	tileset.addEventListener("progress", function(event) {
-		console.log("progress: image progress");
 	});
 	tileset.src = name;
 	tilesets.push(tileset);
