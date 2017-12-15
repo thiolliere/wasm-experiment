@@ -1,4 +1,4 @@
-NAME = wasm_experiment
+NAME = wasm-experiment
 MODE = release
 TARGET_DIR = target/$(NAME)
 BUILD_DIR = target/wasm32-unknown-emscripten/$(MODE)

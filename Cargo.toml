@@ -1,5 +1,5 @@
 [package]
-name = "wasm_experiment"
+name = "wasm-experiment"
 version = "0.1.0"
 authors = ["thiolliere <gui.thiolliere@gmail.com>"]
 license = "MIT/Apache-2.0"
