@@ -72,6 +72,8 @@ var spinnerElement = document.getElementById('spinner');
 
 tileset_names = []; // Filled by build.rs
 tiles = []; // Filled by build.rs
+sound_names = []; // Filled by build.rs
+music_names = []; // Filled by build.rs
 
 var loader = {
 	to_load: 1 + tileset_names.length,
@@ -84,9 +86,9 @@ var loader = {
 	},
 };
 
-tilesets = [];
+var tilesets = [];
 for (var name in tileset_names) {
-	name = tileset_names[name];
+	var name = tileset_names[name];
 	tileset = new Image();
 	tileset.addEventListener("load", function(event) {
 		console.log("load: image completed");
@@ -98,6 +100,49 @@ for (var name in tileset_names) {
 	tileset.src = name;
 	tilesets.push(tileset);
 }
+
+var sounds = [];
+for (var i in sound_names) {
+	var name = sound_names[i][0];
+	var nbr = sound_names[i][1];
+
+	var sound = {
+		pool: [],
+		cursor: 0,
+	};
+
+	for (var j = 0; j < nbr; j++) {
+		var audio = new Audio();
+		audio.src = name;
+		audio.preload = "auto";
+		sound.pool.push(audio);
+	}
+
+	sounds.push(sound);
+}
+
+var musics = [];
+for (var i in music_names) {
+	var name = music_names[i];
+	var audio = new Audio();
+	audio.type = "audio/ogg";
+	audio.src = name;
+	audio.loop = true;
+	musics.push(audio);
+}
+
+audio = {
+	play_sound: function(id) {
+		var s = this.sounds[id].pool[sounds[id].cursor];
+		s.currentTime = 0;
+		s.play();
+	},
+	play_music: function(id) {
+		this.musics[id].play();
+	},
+	musics: musics,
+	sounds: sounds,
+};
 
 var Module = {
 	preRun: [],

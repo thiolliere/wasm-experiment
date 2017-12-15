@@ -10,6 +10,7 @@ use std::cell::RefCell;
 
 mod ffi;
 mod animation;
+mod audio;
 
 thread_local!(static MAIN_LOOP_CALLBACK: RefCell<*mut c_void> = RefCell::new(ptr::null_mut()));
 
