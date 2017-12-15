@@ -14,6 +14,7 @@ cargo_build:
 	cp $(BUILD_DIR)/$(NAME).js $(TARGET_DIR)/$(NAME).js
 	cp $(BUILD_DIR)/$(NAME).wasm $(TARGET_DIR)/$(NAME).wasm
 	cp $(BUILD_DIR)/build/$(NAME)-*/out/index.html $(TARGET_DIR)/index.html
+	cp assets/DejaVuSansMono-Bold.ttf $(TARGET_DIR)/font.ttf
 
 .PHONY: tileset
 tileset: cargo_build

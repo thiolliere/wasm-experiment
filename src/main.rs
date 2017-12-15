@@ -9,9 +9,9 @@ use std::ptr;
 use std::cell::RefCell;
 
 mod ffi;
-mod animation;
-mod audio;
-mod tgl;
+pub mod animation;
+pub mod audio;
+pub mod tgl;
 
 thread_local!(static MAIN_LOOP_CALLBACK: RefCell<*mut c_void> = RefCell::new(ptr::null_mut()));
 
@@ -56,6 +56,7 @@ pub fn main() {
         });
         hero.update(dt);
         graphics.insert_tile(hero.tile(), 100.0, 100.0, 0.5, tgl::Layer::Ceil);
+        graphics.insert_text(String::from("toto"), 100.0, 100.0, 0.5, tgl::Align::Center, tgl::Baseline::Middle, tgl::Layer::Ceil);
         graphics.draw(&tgl::Camera {
             zoom: 100.0,
             x: 0.0,
