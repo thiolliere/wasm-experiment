@@ -129,20 +129,22 @@ fn main() {
     sounds.pop();
     sounds.pop();
 
-    let tileset_pattern = format!("s/tileset_names = \\[\\]; \\/\\/ Filled by build.rs/tileset_names = {:?};/", names);
-    let tiles_pattern = format!("s/tiles = \\[\\]; \\/\\/ Filled by build.rs/tiles = {:?};/", tiles);
-    let sounds_pattern = format!("s/sound_names = \\[\\]; \\/\\/ Filled by build.rs/sound_names = [{}];/", sounds);
-    let musics_pattern = format!("s/music_names = \\[\\]; \\/\\/ Filled by build.rs/music_names = {:?};/", musics);
-    let sed_pattern = format!("{};{};{};{}", tileset_pattern, tiles_pattern, sounds_pattern, musics_pattern);
-
-    let template = String::from("src/index.html");
+    let index_template = include_str!("assets/index.html");
     let dest_path = Path::new(&out_dir).join("index.html");
-    let out_html = File::create(&dest_path).unwrap();
+    let mut out_html = File::create(&dest_path).unwrap();
 
-    assert!(Command::new("sed")
-        .args(&[sed_pattern, template])
-        .stdout(out_html)
-        .status()
-        .unwrap()
-        .success());
+    for line in index_template.lines() {
+        match line {
+            "tileset_names = []; // Filled by build.rs" =>
+                out_html.write_fmt(format_args!("tileset_names = {:?};", names)).unwrap(),
+            "tiles = []; // Filled by build.rs" =>
+                out_html.write_fmt(format_args!("tiles = {:?};", tiles)).unwrap(),
+            "sound_names = []; // Filled by build.rs" =>
+                out_html.write_fmt(format_args!("sound_names = [{}];", sounds)).unwrap(),
+            "music_names = []; // Filled by build.rs" =>
+                out_html.write_fmt(format_args!("music_names = {:?};", musics)).unwrap(),
+            line @ _ => out_html.write_fmt(format_args!("{}", line)).unwrap(),
+        }
+        out_html.write_all(b"\n").unwrap();
+    }
 }

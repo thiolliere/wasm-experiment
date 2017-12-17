@@ -1,4 +1,5 @@
 NAME = wasm-experiment
+NAME_ = wasm_experiment
 MODE = release
 TARGET_DIR = target/$(NAME)
 BUILD_DIR = target/wasm32-unknown-emscripten/$(MODE)
@@ -12,7 +13,7 @@ cargo_build:
 	cargo build --target wasm32-unknown-emscripten --$(MODE)
 	mkdir -p $(TARGET_DIR)
 	cp $(BUILD_DIR)/$(NAME).js $(TARGET_DIR)/$(NAME).js
-	cp $(BUILD_DIR)/$(NAME).wasm $(TARGET_DIR)/$(NAME).wasm
+	cp $(BUILD_DIR)/$(NAME_).wasm $(TARGET_DIR)/$(NAME_).wasm
 	cp $(BUILD_DIR)/build/$(NAME)-*/out/index.html $(TARGET_DIR)/index.html
 	cp assets/DejaVuSansMono-Bold.ttf $(TARGET_DIR)/font.ttf
 
