@@ -38,3 +38,8 @@ rc: cargo_build
 rt:
 	TARGET_DIR=$(TARGET_DIR) sh $(BUILD_DIR)/build/$(NAME)-*/out/make_tileset.sh
 	firefox $(TARGET_DIR)/index.html
+
+.PHONY: clean
+clean:
+	cargo clean
+
