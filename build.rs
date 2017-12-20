@@ -64,14 +64,14 @@ fn main() {
                     out_cmd.write_fmt(format_args!("{} ", file.to_str().unwrap())).unwrap();
                 }
             }
-            out_cmd.write_fmt(format_args!("+append TEMPORAR_FILE_TO_GENERATE_TILESET_{}.png\n", x)).unwrap();
+            out_cmd.write_fmt(format_args!("-append TEMPORAR_FILE_TO_GENERATE_TILESET_{}.png\n", x)).unwrap();
         }
 
         out_cmd.write_all(b"convert ").unwrap();
         for x in 0..width_len {
             out_cmd.write_fmt(format_args!("TEMPORAR_FILE_TO_GENERATE_TILESET_{}.png ", x)).unwrap();
         }
-        out_cmd.write_fmt(format_args!("-append $TARGET_DIR/tileset{}.png\n", format_index)).unwrap();
+        out_cmd.write_fmt(format_args!("+append $TARGET_DIR/tileset{}.png\n", format_index)).unwrap();
         for x in 0..width_len {
             out_cmd.write_fmt(format_args!("rm TEMPORAR_FILE_TO_GENERATE_TILESET_{}.png\n", x)).unwrap();
         }
