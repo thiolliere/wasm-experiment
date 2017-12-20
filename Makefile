@@ -4,6 +4,10 @@ MODE = release
 TARGET_DIR = target/$(NAME)
 BUILD_DIR = target/wasm32-unknown-emscripten/$(MODE)
 
+.PHONY: doc
+doc:
+	cargo doc --target wasm32-unknown-emscripten
+
 .PHONY: check
 check:
 	cargo check --target wasm32-unknown-emscripten
@@ -43,3 +47,6 @@ rt:
 clean:
 	cargo clean
 
+.PHONY: publish
+publish: build
+	butler push $(TARGET_DIR)/ rope/$(NAME):wasm
