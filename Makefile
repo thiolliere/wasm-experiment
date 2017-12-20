@@ -49,4 +49,4 @@ clean:
 
 .PHONY: publish
 publish: build
-	butler push $(TARGET_DIR)/ rope/$(NAME):wasm
+	butler push $(TARGET_DIR)/ rope/$(NAME):html5
