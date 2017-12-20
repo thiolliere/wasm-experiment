@@ -17,10 +17,7 @@ impl Layer {
     }
 }
 
-pub struct Graphics {
-    tiles_to_draw: ::stdweb::Value,
-    texts_to_draw: ::stdweb::Value,
-}
+pub struct Graphics;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -47,17 +44,25 @@ impl Graphics {
     pub fn initialize() -> Self {
         let layer_size: ::stdweb::Value = (Layer::size() as u32).into();
         js! {
+            tgl.layer_size = @{layer_size};
+
+            tgl.tiles_to_draw = [];
+            tgl.texts_to_draw = [];
+            for (var i = 0; i < tgl.layer_size; i++) {
+                tgl.tiles_to_draw.push([]);
+                tgl.texts_to_draw.push([]);
+            }
+
             tgl.textAlign = ["start", "end", "left", "right", "center"];
             tgl.textBaseline = ["top", "hanging", "middle", "alphabetic", "ideographic", "bottom"];
-            tgl.layer_size = @{layer_size};
             // We use 2px and then divide by 2 the camera zoom
             // because there is an issue with 1px
             tgl.context.font = "2px gameFont";
-            tgl.draw = function(camera, tiles_to_draw, texts_to_draw) {
+            tgl.draw = function(camera) {
                 this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 for (var i = 0; i < this.layer_size; i++) {
-                    for (var d = 0; d < tiles_to_draw[i].length; d++) {
-                        var draw = tiles_to_draw[i][d];
+                    for (var d = 0; d < this.tiles_to_draw[i].length; d++) {
+                        var draw = this.tiles_to_draw[i][d];
 
                         this.context.setTransform(1, 0, 0, 1, 0, 0);
                         this.context.translate(draw[1]-camera[0], draw[2]-camera[1]);
@@ -66,8 +71,8 @@ impl Graphics {
                         var tile = tiles[draw[0]];
                         this.context.drawImage(tilesets[tile[0]], tile[1], tile[2], tile[3], tile[4], -0.5, -0.5, 1, 1);
                     }
-                    for (var d = 0; d < texts_to_draw[i].length; d++) {
-                        var draw = texts_to_draw[i][d];
+                    for (var d = 0; d < this.texts_to_draw[i].length; d++) {
+                        var draw = this.texts_to_draw[i][d];
 
                         this.context.setTransform(1, 0, 0, 1, 0, 0);
                         this.context.translate(draw[1]-camera[0], draw[2]-camera[1]);
@@ -78,59 +83,49 @@ impl Graphics {
                         var text = draw[0];
                         this.context.fillText(text, 0, 0);
                     }
+                    tgl.tiles_to_draw[i] = [];
+                    tgl.texts_to_draw[i] = [];
                 }
             };
         }
 
-        let mut layers = vec![];
-        for _ in 0..Layer::size() {
-            layers.push(::stdweb::Value::Array(vec![]));
-        }
-
-        Graphics {
-            tiles_to_draw: layers.clone().into(),
-            texts_to_draw: layers.into(),
-        }
+        Graphics
     }
 
     pub fn insert_tile(&mut self, id: u32, x: f32, y: f32, rotation: f32, layer: Layer) {
-        let draw: Vec<::stdweb::Value> = vec![id.into(), x.into(), y.into(), rotation.into()];
-        if let ::stdweb::Value::Array(ref mut draws) = self.tiles_to_draw {
-            if let ::stdweb::Value::Array(ref mut draws) = draws[layer as usize] {
-                draws.push(draw.into());
-            }
+        let array: [::stdweb::Value; 4] = [
+            id.into(),
+            x.into(),
+            y.into(),
+            rotation.into(),
+        ];
+
+        js! {
+            var array = @{&array as &[_]};
+            tgl.tiles_to_draw[@{layer as u32}].push(array);
         }
     }
 
     pub fn insert_text(&mut self, text: String, x: f32, y: f32, rotation: f32, align: Align, baseline: Baseline, layer: Layer) {
-        let draw: Vec<::stdweb::Value> = vec![text.into(), x.into(), y.into(), rotation.into(), (align as u32).into(), (baseline as u32).into()];
-        if let ::stdweb::Value::Array(ref mut draws) = self.texts_to_draw {
-            if let ::stdweb::Value::Array(ref mut draws) = draws[layer as usize] {
-                draws.push(draw.into());
-            }
+        let array: [::stdweb::Value; 6] = [
+            text.into(),
+            x.into(),
+            y.into(),
+            rotation.into(),
+            (align as u32).into(),
+            (baseline as u32).into(),
+        ];
+
+        js! {
+            var array = @{&array as &[_]};
+            tgl.texts_to_draw[@{layer as u32}].push(array);
         }
     }
 
     pub fn draw(&mut self, camera: &Camera) {
-        let camera = ::stdweb::Value::Array(vec![camera.x.into(), camera.y.into(), camera.zoom.into()]);
+        let camera: [::stdweb::Value; 3] = [camera.x.into(), camera.y.into(), camera.zoom.into()];
         js! {
-            tgl.draw(@{camera}, @{&self.tiles_to_draw}, @{&self.texts_to_draw});
-        }
-
-        // Clear to draw
-        if let ::stdweb::Value::Array(ref mut draws) = self.tiles_to_draw {
-            for i in 0..Layer::size() {
-                if let ::stdweb::Value::Array(ref mut draws) = draws[i] {
-                    draws.clear();
-                }
-            }
-        }
-        if let ::stdweb::Value::Array(ref mut draws) = self.texts_to_draw {
-            for i in 0..Layer::size() {
-                if let ::stdweb::Value::Array(ref mut draws) = draws[i] {
-                    draws.clear();
-                }
-            }
+            tgl.draw(@{&camera as &[_]});
         }
     }
 }

@@ -6,6 +6,6 @@ license = "MIT/Apache-2.0"
 readme = "README.md"
 
 [dependencies]
-stdweb = "0.1"
+stdweb = "0.2"
 winit = "0.9"
 lazy_static = "1"
