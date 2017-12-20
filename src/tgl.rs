@@ -59,17 +59,18 @@ impl Graphics {
             // because there is an issue with 1px
             tgl.context.font = "2px gameFont";
             tgl.draw = function(camera) {
+                var zoom  = camera[2]*Math.min(this.canvas.width, this.canvas.height);
                 this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 for (var i = 0; i < this.layer_size; i++) {
                     for (var d = 0; d < this.tiles_to_draw[i].length; d++) {
                         var draw = this.tiles_to_draw[i][d];
 
                         this.context.setTransform(1, 0, 0, 1, 0, 0);
-                        this.context.translate(draw[1]-camera[0], draw[2]-camera[1]);
+                        this.context.translate(draw[1]-camera[0]+this.canvas.width/2.0, draw[2]-camera[1]+this.canvas.height/2.0);
                         this.context.rotate(draw[3]);
-                        this.context.scale(camera[2], camera[2]);
+                        this.context.scale(zoom, zoom);
                         var tile = tiles[draw[0]];
-                        this.context.drawImage(tilesets[tile[0]], tile[1], tile[2], tile[3], tile[4], -0.5, -0.5, 1, 1);
+                        this.context.drawImage(tilesets[tile[0]], tile[1], tile[2], tile[3], tile[4], -tile[3]/2.0, -tile[4]/2.0, tile[3], tile[4]);
                     }
                     for (var d = 0; d < this.texts_to_draw[i].length; d++) {
                         var draw = this.texts_to_draw[i][d];
@@ -77,7 +78,7 @@ impl Graphics {
                         this.context.setTransform(1, 0, 0, 1, 0, 0);
                         this.context.translate(draw[1]-camera[0], draw[2]-camera[1]);
                         this.context.rotate(draw[3]);
-                        this.context.scale(camera[2]/2, camera[2]/2);
+                        this.context.scale(zoom/2.0, zoom/2.0);
                         this.context.textAlign = this.textAlign[draw[4]];
                         this.context.textBaseline = this.textBaseline[draw[5]];
                         var text = draw[0];
