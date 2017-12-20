@@ -1,4 +1,4 @@
-#![recursion_limit="500"]
+#![recursion_limit="1000"]
 #[macro_use] extern crate stdweb;
 extern crate winit;
 #[macro_use] extern crate lazy_static;
@@ -56,7 +56,7 @@ pub fn main() {
         });
         hero.update(dt);
         graphics.insert_tile(hero.tile(), 0.0, 0.0, 0.0, tgl::Layer::Ceil);
-        // graphics.insert_text(String::from("toto"), 100.0, 100.0, 0.5, tgl::Align::Center, tgl::Baseline::Middle, tgl::Layer::Ceil);
+        graphics.insert_text(String::from("toto"), 1.0, 0.0, 0.0, 1000.0, tgl::Align::Center, tgl::Baseline::Middle, tgl::Layer::Ceil);
         graphics.draw(&tgl::Camera {
             zoom: 0.0001,
             x: 0.0,

@@ -55,18 +55,22 @@ impl Graphics {
 
             tgl.textAlign = ["start", "end", "left", "right", "center"];
             tgl.textBaseline = ["top", "hanging", "middle", "alphabetic", "ideographic", "bottom"];
-            // We use 2px and then divide by 2 the camera zoom
-            // because there is an issue with 1px
-            tgl.context.font = "2px gameFont";
             tgl.draw = function(camera) {
+                // We use 2px and then divide by 2 the camera zoom
+                // because there is an issue with 1px
+                this.context.font = "2px gameFont";
+
                 var zoom  = camera[2]*Math.min(this.canvas.width, this.canvas.height);
+                var zoom2 = zoom/2.0;
+                var dx = - camera[0] + this.canvas.width/2.0;
+                var dy = - camera[1] + this.canvas.height/2.0;
                 this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 for (var i = 0; i < this.layer_size; i++) {
                     for (var d = 0; d < this.tiles_to_draw[i].length; d++) {
                         var draw = this.tiles_to_draw[i][d];
 
                         this.context.setTransform(1, 0, 0, 1, 0, 0);
-                        this.context.translate(draw[1]-camera[0]+this.canvas.width/2.0, draw[2]-camera[1]+this.canvas.height/2.0);
+                        this.context.translate(draw[1] + dx, draw[2] + dy);
                         this.context.rotate(draw[3]);
                         this.context.scale(zoom, zoom);
                         var tile = tiles[draw[0]];
@@ -76,11 +80,11 @@ impl Graphics {
                         var draw = this.texts_to_draw[i][d];
 
                         this.context.setTransform(1, 0, 0, 1, 0, 0);
-                        this.context.translate(draw[1]-camera[0], draw[2]-camera[1]);
+                        this.context.translate(draw[1] + dx, draw[2] + dy);
                         this.context.rotate(draw[3]);
-                        this.context.scale(zoom/2.0, zoom/2.0);
-                        this.context.textAlign = this.textAlign[draw[4]];
-                        this.context.textBaseline = this.textBaseline[draw[5]];
+                        this.context.scale(zoom2*draw[4], zoom2*draw[4]);
+                        this.context.textAlign = this.textAlign[draw[5]];
+                        this.context.textBaseline = this.textBaseline[draw[6]];
                         var text = draw[0];
                         this.context.fillText(text, 0, 0);
                     }
@@ -107,12 +111,13 @@ impl Graphics {
         }
     }
 
-    pub fn insert_text(&mut self, text: String, x: f32, y: f32, rotation: f32, align: Align, baseline: Baseline, layer: Layer) {
-        let array: [::stdweb::Value; 6] = [
+    pub fn insert_text(&mut self, text: String, x: f32, y: f32, rotation: f32, scale: f32, align: Align, baseline: Baseline, layer: Layer) {
+        let array: [::stdweb::Value; 7] = [
             text.into(),
             x.into(),
             y.into(),
             rotation.into(),
+            scale.into(),
             (align as u32).into(),
             (baseline as u32).into(),
         ];
